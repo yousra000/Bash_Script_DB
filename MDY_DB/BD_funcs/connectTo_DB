@@ -1,0 +1,75 @@
+#!/bin/bash
+
+source  ./conditions
+
+while true; do
+    echo "Write the name of the DB"
+    read db_name
+
+    if CheckIfValid "$db_name"; then
+        path=~/db/$db_name
+
+        if [ -d $path ]; then
+            echo "Connected"
+
+            while true; do
+                echo "Choose an option:"
+                select ele in 'Create Table' 'List Tables' 'Insert' 'Drop Table' 'Select' 'Delete From Table' 'Update Table' 'Exit'; do
+                    case $ele in
+                        "Insert")
+                            . "$HOME/db/TB_funcs/insert_to_TB"
+                            break
+                            ;;
+
+                        "Create Table")
+                            . "$HOME/db/TB_funcs/create_TB"
+                            break
+                            ;;
+
+                        "Select")
+                            . "$HOME/db/TB_funcs/select_ITEM_TB"
+                            break
+                            ;;
+
+                        "Delete From Table")
+                            . "$HOME/db/TB_funcs/delete_ITEM_TB"
+                            break
+                            ;;
+
+                        "Update Table")
+                            . "$HOME/db/TB_funcs/update_TB"
+                            break
+                            ;;
+
+                        "List Tables")
+                            . "$HOME/db/TB_funcs/list_tb"
+                            break
+                            ;;
+
+                        "Drop Table")
+                            . "$HOME/db/TB_funcs/drop_TB"
+                            break
+                            ;;
+
+                        "Exit")
+                            echo "Exiting..."
+                            break 2
+                            ;;
+
+                        *)
+                            echo "Invalid"
+                            ;;
+                    esac
+                done
+            done
+
+        else
+            echo "DB not found!"
+            continue
+        fi
+    else
+        echo "Invalid"
+        continue
+    fi
+done
+
