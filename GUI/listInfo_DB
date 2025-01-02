@@ -1,0 +1,17 @@
+#!/bin/bash
+
+path=~/db
+
+dbs=$(ls -1 $path)
+
+opt=$(zenity --list --title="Select a Database" --column="Databases" $dbs)
+
+path_2=$path/$opt
+
+if [ -d "$path_2" ]; then
+    tables=$(ls -1 "$path_2")
+    
+
+    zenity --list --title="Tables in $opt" --column="Tables" $tables
+fi
+
