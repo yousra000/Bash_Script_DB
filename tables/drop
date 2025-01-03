@@ -1,0 +1,12 @@
+#!/usr/bin/bash
+
+echo "please enter the name of table to drop: "
+read table_name
+meta_file="$HOME/tables/${table_name}.meta"
+data_file="$HOME/tables/${table_name}.data"
+if [[ -f "$meta_file" ]]; then
+      sudo rm "$meta_file" "$data_file"
+      echo "The Table Dropped Succssefully " 
+else
+    echo "Table does not exist"
+fi

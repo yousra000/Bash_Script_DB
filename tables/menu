@@ -1,0 +1,51 @@
+#!/usr/bin/bash
+
+echo "------------Table----------"
+echo "------------choice to tables--------"
+
+while true;do
+	echo "*************************"
+	echo "Tables menu: "
+	echo "1.create table"
+	echo "2.list table"
+	echo "3.drop table"
+	echo "4.inser into table"
+	echo "5.select from table"
+	echo "6.delete from table"
+	echo "7.update table"
+	echo "8.exit"
+echo "please enter the number of choice "
+read option 
+
+case $option in
+1)./create;; 
+
+2)./list;;
+
+3)./drop;;
+
+4)
+#insert
+echo "insert"
+;;
+
+5)
+#select
+echo "select"
+;;
+
+6)
+#delete
+echo "delete"
+;;
+
+7)
+#update
+echo "update"
+;;
+8) echo "Exit"
+	break;;
+*)
+echo "invaild number"	
+esac
+done 

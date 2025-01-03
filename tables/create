@@ -1,0 +1,55 @@
+#!/usr/bin/bash
+
+echo "please enter name of table: "
+read name_table
+name_table=$(echo "$name_table" | tr ' ' '_')
+
+data_file="$HOME/tables/${name_table}.data"
+meta_data_file="$HOME/tables/${name_table}.meta"
+
+if [[ "$name_table" =~ ^[a-zA-Z_]+$ ]]; then
+    if [ -f "$meta_data_file" ]; then
+        echo "The table already exists"
+        exit 
+    fi
+
+    echo "please enter number of columns: "
+    read num_col
+    if [[ "$num_col" =~ ^[0-9]+$ && "$num_col" -gt 0 ]]; then
+        column=()
+        data_type=()
+
+        for ((i=1; i<=num_col; i++)); do
+            echo "please enter name of column $i:"
+            read name
+            if [[ "$name" =~ ^[a-zA-Z_]+$ ]]; then
+                column+=("$name")
+            else
+                echo "Invalid column name"
+    		exit 
+            fi
+
+            echo "please enter data type of column $i (string/int):"
+            read type
+            if [[ "$type" == "string" || "$type" == "int" ]]; then
+                data_type+=("$type")
+            else
+                echo "Invalid data type. Only 'string' or 'int' are allowed."
+                exit 
+            fi
+        done
+
+        echo "${column[*]}" > "$meta_data_file"
+        echo "${data_type[*]}" >> "$meta_data_file"
+        touch "$data_file"
+
+        echo "Table '$name_table' created successfully!"
+    else
+        echo "Invalid number of columns."
+        exit 
+    fi
+else
+    echo "Invalid table name."
+    exit 
+fi
+ 
