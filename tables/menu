@@ -9,7 +9,7 @@ while true;do
 	echo "1.create table"
 	echo "2.list table"
 	echo "3.drop table"
-	echo "4.inser into table"
+	echo "4.insert into table"
 	echo "5.select from table"
 	echo "6.delete from table"
 	echo "7.update table"
@@ -24,15 +24,9 @@ case $option in
 
 3)./drop;;
 
-4)
-#insert
-echo "insert"
-;;
+4)./insert;;
 
-5)
-#select
-echo "select"
-;;
+5)./select;;
 
 6)
 #delete

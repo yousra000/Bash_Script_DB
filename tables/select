@@ -1,0 +1,18 @@
+#!/usr/bin/bash
+
+echo "Please enter the table name to select valuse: "
+read table_name
+
+data_file="$HOME/tables/${table_name}.data"
+meta_file="$HOME/tables/${table_name}.meta"
+
+if [[ ! -f "$meta_file" ]]; then
+     echo "the table does not exist"
+     exit 
+
+else
+      IFS=' ' read -a cloumns  <  ${meta_file}
+      echo "cloumns: "${cloumns[*]}
+      echo "values : $(cat "$data_file"|tr ',' ' ') "
+
+fi

@@ -1,0 +1,36 @@
+#!/usr/bin/bash
+
+echo "Enter the name of table that you want to insert into: "
+read table_name
+
+meta_file="$HOME/tables/${table_name}.meta"
+data_file="$HOME/tables/${table_name}.data"
+
+if [[ ! -f $meta_file ]]; then
+    echo "Table does not exist."
+    exit
+fi
+
+
+IFS=' ' read -a columns < "$meta_file"  # Read column names w bakhzenha fe arr
+IFS=' ' read -a data_types <<< "$(sed -n '2p' "$meta_file")"  # Read data types
+
+row=()
+for i in "${!columns[@]}"; do #! beacces index in array
+    echo "Enter value for ${columns[i]} (type: ${data_types[i]}): "
+    read value
+    
+    if [[ "${data_types[i]}" == "digit" && ! "$value" =~ ^[0-9]+$ ]]; then
+        echo "Invalid value"
+        exit
+    elif [[ "${data_types[i]}" == "string" && "$value" =~ [^a-zA-Z] ]]; then
+        echo "Invalid value"
+        exit
+    fi
+
+    row+=("$value")
+done
+
+echo "${row[*]}" | tr ' ' ',' >> "$data_file"
+echo "Row inserted successfully."
+
