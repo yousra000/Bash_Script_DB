@@ -1,0 +1,19 @@
+#!/bin/bash
+
+
+
+CheckIfValid() {
+    input=$1
+
+    if [[ $input =~ ^[a-zA-Z0-9]+$ ]]; then
+        input=$(echo "$input" | tr ' ' '_')
+	return 0
+    elif [ -z $input ];then
+	echo "your input is empty"
+	return 1
+    else
+        echo "Invalid input try again"
+	return 1
+        
+    fi
+}
