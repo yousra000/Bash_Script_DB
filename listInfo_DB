@@ -1,0 +1,21 @@
+#!/bin/bash
+
+path=~/db
+
+dbs=$(ls -1 $path)
+
+opt=$(zenity --list --title="Select a Database" --column="Databases" $dbs)
+if [ $? -ne 0 ]; then
+    zenity --info --text="Operation canceled." --width=300
+    exit 0
+fi
+
+path_2=$path/$opt
+
+if [ -d "$path_2" ]; then
+    tables=$(ls -1 "$path_2")
+    
+
+    zenity --list --title="Tables in $opt" --column="Tables" $tables
+fi
+
