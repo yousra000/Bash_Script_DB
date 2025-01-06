@@ -1,0 +1,76 @@
+#!/usr/bin/bash
+
+source ./set_condition
+
+
+DB_name=$(zenity --entry --title="Database Selection" \
+    --text="Enter the name of the database:" \
+    --width=400)
+
+if ! CheckIfValidOfName "$DB_name"; then
+    zenity --error --text="Invalid database name. Please try again." --width=300
+    return 1
+fi
+
+
+db_path="$HOME/db/$DB_name"
+if [ ! -d "$db_path" ]; then
+    zenity --error --text="Database '$DB_name' does not exist in the path: $db_path" --width=300
+    return 1
+fi
+
+while true; do
+    option=$(zenity --list --title="Table Management Menu" \
+        --text="Database: $DB_name\n\nSelect an action:" \
+        --column="Option" \
+        "1.Create Table" \
+        "2.List Tables" \
+        "3.Drop Table" \
+        "4.Insert Into Table" \
+        "5.Select From Table" \
+        "6.Delete From Table" \
+        "7.Update Table" \
+        "8.View Table" \
+	    "9.Exit" \
+        --width=400 --height=400)
+
+    if [ $? -ne 0 ]; then
+        zenity --info --text="Operation canceled." --width=300
+        cd "$HOME/MDY_DB/BD_funcs"
+        ./list_menu  
+    fi
+    cd "$HOME/MDY_DB/TB_funcs"  
+    case $option in
+        "1.Create Table")
+            . create_table "$db_path"
+            ;;
+        "2.List Tables")
+            . list_table "$db_path"
+            ;;
+        "3.Drop Table")
+            . drop_table "$db_path"
+            ;;
+        "4.Insert Into Table")
+            . insert_to_TB "$db_path"
+            ;;
+        "5.Select From Table")
+            . select_from_table "$db_path"
+            ;;
+        "6.Delete From Table")
+            . delete_ITEM_TB "$db_path"
+            ;;
+        "7.Update Table")
+            . update_TB "$db_path"
+            ;;
+    	"8.View Table")
+    	    . view_table "$db_path"
+    		    ;;
+    	 "9.Exit")
+    	 	zenity --info --text="Thank you" --width=300
+    	        cd "$HOME/MDY_DB/BD_funcs"  
+            	. list_menu
+                ;;
+    esac
+done
+
+

@@ -1,0 +1,24 @@
+#!/bin/bash
+
+source ./set_condition
+
+while true; do
+    DB_name=$(zenity --entry --title="Create Database" --text="Enter Name:" --width=400)
+    res=$?
+    if [ $res -eq 1 ]; then
+        zenity --info --text="Operation canceled. Returning to the previous step." --width=300
+        return 1
+    fi
+    DB_name=$(echo $DB_name | tr ' ' '_')
+    
+    if CheckIfValidOfName $DB_name; then
+        mkdir -p "$HOME/db/$DB_name"
+        zenity --info --text="Database '$DB_name' created successfully" --width=300
+        break
+        
+    else
+        zenity --error --text="Invalid database name. Please try again." --width=300
+        continue
+    fi
+done
+

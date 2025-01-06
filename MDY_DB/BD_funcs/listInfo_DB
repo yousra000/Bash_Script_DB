@@ -1,0 +1,43 @@
+#!/bin/bash
+
+path=~/db
+
+dbs=$(ls -1 $path)
+
+
+opt=$(zenity --list --title="Select a Database" --column="Databases" $dbs --width=350 --height=500)
+
+if [ $? -ne 0 ]; then
+        return 1
+fi
+
+path_2=$path/$opt
+
+if [ -d "$path_2" ]; then
+    tables=$(ls -1 "$path_2")
+
+    selected_tb=$(zenity --list --title="Tables in $opt" --column="Tables" $tables )
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
+
+    path_3="$path_2/$selected_tb"
+    
+
+    if [ -f "$path_3" ]; then
+	meta_file="$path_2/${table_name}.meta"
+        data_file="$path_2/${table_name}.data"
+        zenity --text-info --title="Data from $selected_tb" --width=800 --height=600 --filename="$path_3"
+        cd "$HOME/MDY_DB/TB_funcs"
+        ./view "$meta_file" "$data_file"
+        return 1
+    else
+        zenity --error --text="Table does not exist."
+        return 1
+    fi
+
+else
+    zenity --error --text="Database does not exist."
+    return 1
+fi
+

@@ -1,0 +1,126 @@
+#!/bin/bash
+
+source ./set_condition
+db_input=$1
+
+while true; do
+    Table_name=$(zenity --entry --title="Delete record or column" --text="Enter the name of the Table:" --width=400)
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
+
+    if CheckIfValidOfName "$Table_name"; then
+        
+        meta_file="$1/${Table_name}.meta"
+        data_file="$1/${Table_name}.data"
+
+        if [[ -f $meta_file ]]; then
+
+	    IFS=' ' read -a columns < "$meta_file"
+	    IFS=' ' read -a data_types <<< "$(sed -n '2p' "$meta_file")"
+
+            while true; do
+                option=$(zenity --list --title="Delete Management Menu" \
+                    --text="Table: $Table_name\n\nSelect an action:" \
+                    --column="Option" \
+                    "1.Delete all data" \
+                    "2.Delete By PK" \
+                    "3.Delete By Specific Column" \
+                    "4.Exit" \
+                    --width=400 --height=400)
+
+                case $option in
+                    "1.Delete all data")
+                        zenity --question --text="Are you sure you want to delete all data from table '$Table_name'?" --width=300
+                        if [ $? -eq 0 ]; then   
+                            sed -i '1,$d' "$data_file"
+                            if [ ! -s "$data_file" ]; then
+                                zenity --info --text="All data from '$Table_name' deleted successfully." --width=300
+                            fi
+                            break 2
+                        elif [ $? -eq 1 ]; then
+                            zenity --info --text="No data was deleted from '$Table_name'." --width=300
+                            break 2
+                        else
+                            zenity --error --text="An error occurred. Please try again." --width=300
+                        fi
+                        ;;
+                    
+                    "2.Delete By PK")
+                        PK_input=$(zenity --entry --title="Primary Key" --text="Enter the number of the Primary Key:" --width=400)
+                        pk_exists=$(awk -F, -v PK="$PK_input" '{if ($1 == PK) print $1}' "$data_file" | wc -l)
+                        if [ "$pk_exists" -eq 0 ]; then
+                            zenity --error --text="Primary key '$PK_input' does not exist." --width=300
+                        else
+                            sed -i "/^$PK_input,/d" "$data_file"
+                            zenity --info --text="Record with PK '$PK_input' deleted successfully." --width=300
+                        fi
+                        break
+                        ;;
+                    
+                    "3.Delete By Specific Column")
+                        
+			IFS=$'\n' read -d '' -r -a rows < "$data_file"
+			rows_count="${#rows[@]}"
+
+			if [ "$rows_count" -eq 0 ]; then
+			    zenity --error --text="No rows found in the table." --width=300
+			    return 1
+			fi
+
+			row_number=$(zenity --list --title="Select Row to Update" --text="Choose a row to update:" \
+			    --column="Row Number" $(seq 1 "$rows_count") --width=400 --height=300)
+
+			if [ -z "$row_number" ]; then
+			    return 1
+			fi
+
+			selected_row="${rows[$((row_number-1))]}"
+			IFS=',' read -a selected_values <<< "$selected_row"
+
+			col_to_delete=$(zenity --list --title="Select Column to Update" --text="Choose a column to update:" \
+			    --column="Column Name" "${columns[@]}" --width=400 --height=300)
+
+			if [ -z "$col_to_delete" ]; then
+			    return 1
+			fi
+
+			col_index=-1
+			for i in "${!columns[@]}"; do
+			    if [ "${columns[$i]}" == "$col_to_delete" ]; then
+				col_index=$i
+				break
+			    fi
+			done
+    			selected_values[$col_index]="null"
+    			updated_row=$(IFS=','; echo "${selected_values[*]}")
+    			rows[$((row_number - 1))]="$updated_row"
+    			{
+				for row in "${rows[@]}"; do
+				    echo "$row"
+				done
+			    } > "$data_file"
+    			zenity --info --text="Value in column '$col_to_delete' replaced with 'null'." --width=300
+    			break
+    			;;
+                    
+                     "4.Exit")
+                        break 3
+                        ;;
+                    
+                    *)
+                        zenity --error --text="Unknown option! Please try again." --width=300
+                        ;;
+                esac
+            done
+        else
+            zenity --error --text="Table '$Table_name' does not exist." --width=300
+            continue
+        fi
+        break
+    else
+        zenity --error --text="Invalid table name '$Table_name'." --width=300
+        continue
+    fi
+done
+
