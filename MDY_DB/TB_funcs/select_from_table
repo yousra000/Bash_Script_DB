@@ -1,0 +1,54 @@
+#!/usr/bin/bash
+
+db_path="$1"
+
+table_name=$(zenity --entry --text="Enter Table Name to View" --width=400)
+
+meta_file="$1/${table_name}.meta"
+data_file="$1/${table_name}.data"
+
+if [[ ! -f $meta_file ]]; then
+    zenity --error --text="Table '$table_name' does not exist." --width=300
+    return 1
+fi
+
+IFS=' ' read -a columns < "$meta_file"
+IFS=' ' read -a data_types <<< "$(sed -n '2p' "$meta_file")"
+
+IFS=$'\n' read -d '' -r -a rows < "$data_file"
+rows_count="${#rows[@]}"
+
+if [ "$rows_count" -eq 0 ]; then
+    zenity --error --text="No rows found in the table." --width=300
+    return 1
+fi
+
+row_number=$(zenity --list --title="Select Row to View" --text="Choose a row to view:" \
+    --column="Row Number" $(seq 1 "$rows_count") --width=400 --height=300)
+
+if [ -z "$row_number" ]; then
+    return 1
+fi
+
+selected_row="${rows[$((row_number-1))]}"
+IFS=',' read -a selected_values <<< "$selected_row"
+
+col_to_view=$(zenity --list --title="Select Column to View" --text="Choose a column to view:" \
+    --column="Column Name" "${columns[@]}" --width=400 --height=300)
+
+if [ -z "$col_to_view" ]; then
+    return 1
+fi
+
+col_index=-1
+for i in "${!columns[@]}"; do
+    if [ "${columns[$i]}" == "$col_to_view" ]; then
+        col_index=$i
+        break
+    fi
+done
+
+current_value="${selected_values[$col_index]}"
+
+zenity --info --text="The value of column '$col_to_view' in row $row_number is: $current_value" --width=300
+

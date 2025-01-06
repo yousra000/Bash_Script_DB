@@ -1,75 +1,76 @@
-#!/bin/bash
+#!/usr/bin/bash
 
-source  ./conditions
+source ./set_condition
+
+
+DB_name=$(zenity --entry --title="Database Selection" \
+    --text="Enter the name of the database:" \
+    --width=400)
+
+if ! CheckIfValidOfName "$DB_name"; then
+    zenity --error --text="Invalid database name. Please try again." --width=300
+    return 1
+fi
+
+
+db_path="$HOME/db/$DB_name"
+if [ ! -d "$db_path" ]; then
+    zenity --error --text="Database '$DB_name' does not exist in the path: $db_path" --width=300
+    return 1
+fi
 
 while true; do
-    echo "Write the name of the DB"
-    read db_name
+    option=$(zenity --list --title="Table Management Menu" \
+        --text="Database: $DB_name\n\nSelect an action:" \
+        --column="Option" \
+        "1.Create Table" \
+        "2.List Tables" \
+        "3.Drop Table" \
+        "4.Insert Into Table" \
+        "5.Select From Table" \
+        "6.Delete From Table" \
+        "7.Update Table" \
+        "8.View Table" \
+	    "9.Exit" \
+        --width=400 --height=400)
 
-    if CheckIfValid "$db_name"; then
-        path=~/db/$db_name
-
-        if [ -d $path ]; then
-            echo "Connected"
-
-            while true; do
-                echo "Choose an option:"
-                select ele in 'Create Table' 'List Tables' 'Insert' 'Drop Table' 'Select' 'Delete From Table' 'Update Table' 'Exit'; do
-                    case $ele in
-                        "Insert")
-                            . "$HOME/db/TB_funcs/insert_to_TB"
-                            break
-                            ;;
-
-                        "Create Table")
-                            . "$HOME/db/TB_funcs/create_TB"
-                            break
-                            ;;
-
-                        "Select")
-                            . "$HOME/db/TB_funcs/select_ITEM_TB"
-                            break
-                            ;;
-
-                        "Delete From Table")
-                            . "$HOME/db/TB_funcs/delete_ITEM_TB"
-                            break
-                            ;;
-
-                        "Update Table")
-                            . "$HOME/db/TB_funcs/update_TB"
-                            break
-                            ;;
-
-                        "List Tables")
-                            . "$HOME/db/TB_funcs/list_tb"
-                            break
-                            ;;
-
-                        "Drop Table")
-                            . "$HOME/db/TB_funcs/drop_TB"
-                            break
-                            ;;
-
-                        "Exit")
-                            echo "Exiting..."
-                            break 2
-                            ;;
-
-                        *)
-                            echo "Invalid"
-                            ;;
-                    esac
-                done
-            done
-
-        else
-            echo "DB not found!"
-            continue
-        fi
-    else
-        echo "Invalid"
-        continue
+    if [ $? -ne 0 ]; then
+        zenity --info --text="Operation canceled." --width=300
+        cd "$HOME/MDY_DB/BD_funcs"
+        ./list_menu  
     fi
+    cd "$HOME/MDY_DB/TB_funcs"  
+    case $option in
+        "1.Create Table")
+            . create_table "$db_path"
+            ;;
+        "2.List Tables")
+            . list_table "$db_path"
+            ;;
+        "3.Drop Table")
+            . drop_table "$db_path"
+            ;;
+        "4.Insert Into Table")
+            . insert_to_TB "$db_path"
+            ;;
+        "5.Select From Table")
+            . select_from_table "$db_path"
+            ;;
+        "6.Delete From Table")
+            . delete_ITEM_TB "$db_path"
+            ;;
+        "7.Update Table")
+            . update_TB "$db_path"
+            ;;
+    	"8.View Table")
+    	    . view_table "$db_path"
+    		    ;;
+    	 "9.Exit")
+    	 	zenity --info --text="Thank you" --width=300
+    	        cd "$HOME/MDY_DB/BD_funcs"  
+            	. list_menu
+                ;;
+    esac
 done
+
 

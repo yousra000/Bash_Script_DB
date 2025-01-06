@@ -1,43 +1,34 @@
 #!/bin/bash
 
 if [ -d "$HOME/db" ]; then
-    echo "Welcome How can I assist you?"
-    cd "$HOME/MDY_DB/BD_funcs"  
-    PS3='Enter your choice: '
-    options=("create new DB" "list DB" "connect to DB" "drop DB")
-    select opt in "${options[@]}"
-    do
-        case $opt in
-            "create new DB")
-                echo "Creating new DB..."
-                . create_DB  
-                break
-                ;;
-
-            "list DB")
-                echo "Listing DB..."
-                . "$HOME/MDY_DB/BD_funcs/listInfo_DB"  
-                break
-                ;;
-
-            "connect to DB")
-                echo "Connecting to DB..."
-                . "$HOME/MDY_DB/BD_funcs/connectTo_DB"  
-                break
-                ;;
-
-            "drop DB")
-                echo "Dropping DB..."
-                . "$HOME/MDY_DB/BD_funcs/dropFrom_DB"  
-                break
-                ;;
-
-            *) 
-                echo "Invalid option $REPLY";;
-        esac
+    	#PS3=''
+    	items=("1.Create Database" "2.List Database" "3.Connect To Databases" "4.Drop Database")
+    	while item=$(zenity --title="Database options" --text="select one of the following: " --list \
+               --column="Enter your choice" "${items[@]}" --width=300 --height=300)
+            cd "$HOME/MDY_DB/BD_funcs"  
+	    do
+	    case "$item" in
+		    "${items[0]}")
+			    echo "Launching Create Database script..."
+			    . create_DB 
+			    ;;
+		    "${items[3]}")
+			    echo "Launching Drop Database Script..."
+			    . dropFrom_DB
+			    ;;
+		    "${items[1]}")
+			    echo "Launching List Database Script..."
+			    . listInfo_DB
+			    ;;
+		     "${items[2]}")
+		        echo "Launching Connect to Database Script..."
+		        . connectTo_DB
+		        ;;
+			*) echo "Invalid option.";;
+		esac
     done
 else
-    mkdir "$HOME/db"
+    mkdir $HOME/db
     echo "Ready!"
 fi
 

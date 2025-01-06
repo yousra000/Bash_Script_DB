@@ -1,40 +1,38 @@
 #!/bin/bash
 
-source  ./conditions
+source  ./set_condition
 
 while true; do
-    echo "name of the DB:"
-    read db_name
+    db_name=$(zenity --entry --title="Drop Database" --text="Enter the name of the database:" --width=400)
 
-    if CheckIfValid $db_name; then
-        path=~/db/$db_name
-        if [ -e $path ]; then
+    if [ $? -ne 0 ]; then
+    	zenity --info --text="Operation canceled." --width=300
+        return 1
+    fi
 
-            echo "sure you want to delete $db_name? "
-            read opt
-            case $opt in
-                "y" )
-                    rm -rf $path
-                    echo "dropped"
-                    break 2
-                    ;;
+    if CheckIfValidOfName $db_name; then
+        path="$HOME/db/$db_name"
+       	if [ -d "$path" ]; then
+            zenity --question --text="Are you sure you want to delete the database file '$db_name'?" --width=300
 
-                "n")
-                    echo "Your DB is safe"
-                    break 2
-                    ;;
-                *)
-                    echo "please enter an input again"
-                    ;;
-            esac
-
+            if [ $? -eq 0 ]; then   
+                rm -r "$path"
+                zenity --info --text="Database file '$db_name' has been dropped successfully" --width=300
+                break
+                  
+            elif [ $? -eq 1 ]; then
+                zenity --info --text="database was not removed" --width=300
+                break
+                  
+            else
+                zenity --error --text="An error occurred. Please try again" --width=300
+            fi
+            
         else
-            echo "DB not found!"
+            zenity --error --text="Database file '$db_name' does not exist" --width=300
         fi
-
     else
-        echo "invalid!"
-        continue
+        zenity --error --text="Invalid database name. Please try again" --width=300
     fi
 done
 

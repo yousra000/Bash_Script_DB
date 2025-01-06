@@ -1,0 +1,40 @@
+#!/bin/bash
+
+
+
+CheckIfValidOfName() {
+    input=$1
+    echo $input
+    if [ -f "$input" ]; then
+        zenity --warning --text="already exists" --width=300
+        return 1 
+    fi
+    
+    if [[ $input =~ ^[a-zA-Z_][a-zA-Z0-9_]*([.][a-zA-Z0-9_]+)*$ ]]; then
+    
+    	zenity --info --text="Input: $input" --width=400
+	return 0
+    elif [ -z $input ];then
+	zenity --warning --text="your input is empty" --width=300
+	return 1
+    else
+        zenity --warning --text="invalid " --width=300
+	return 1
+        
+    fi
+}
+
+CheckIfValid_OfNum() {
+    input=$1
+    if [[ $input =~  ^[0-9]+$ && "$num_col" -gt 0 ]]; then
+        zenity --info --text="Input: $input" --width=400
+	return 0
+    elif [ -z $input ];then
+	zenity --warning --text="your input is empty" --width=300
+	return 1
+    else
+        zenity --warning --text="invalid" --width=300
+	return 1
+        
+    fi
+}

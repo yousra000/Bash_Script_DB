@@ -1,0 +1,98 @@
+#!/usr/bin/bash
+
+db_path="$1"
+
+table_name=$(zenity --entry --text="Enter Table Name to Update" --width=400)
+
+meta_file="$1/${table_name}.meta"
+data_file="$1/${table_name}.data"
+
+if [[ ! -f $meta_file ]]; then
+    zenity --error --text="Table '$table_name' does not exist." --width=300
+    return 1
+fi
+
+IFS=' ' read -a columns < "$meta_file"
+IFS=' ' read -a data_types <<< "$(sed -n '2p' "$meta_file")"
+
+IFS=$'\n' read -d '' -r -a rows < "$data_file"
+rows_count="${#rows[@]}"
+
+if [ "$rows_count" -eq 0 ]; then
+    zenity --error --text="No rows found in the table." --width=300
+    return 1
+fi
+
+row_number=$(zenity --list --title="Select Row to Update" --text="Choose a row to update:" \
+    --column="Row Number" $(seq 1 "$rows_count") --width=400 --height=300)
+
+if [ -z "$row_number" ]; then
+    return 1
+fi
+
+selected_row="${rows[$((row_number-1))]}"
+IFS=',' read -a selected_values <<< "$selected_row"
+
+col_to_update=$(zenity --list --title="Select Column to Update" --text="Choose a column to update:" \
+    --column="Column Name" "${columns[@]}" --width=400 --height=300)
+
+if [ -z "$col_to_update" ]; then
+    return 1
+fi
+
+col_index=-1
+for i in "${!columns[@]}"; do
+    if [ "${columns[$i]}" == "$col_to_update" ]; then
+        col_index=$i
+        break
+    fi
+done
+
+is_pk_column=0
+if [ "$col_index" -eq 0 ]; then
+    is_pk_column=1
+fi
+
+current_value="${selected_values[$col_index]}"
+
+while true; do
+    new_value=$(zenity --entry --title="Update Column Value" --text="Current value: '$current_value'\nEnter new value for '$col_to_update':" --width=400)
+
+    if [ -z "$new_value" ]; then
+        return 1
+    fi
+
+    if [ "$is_pk_column" -eq 1 ]; then
+        duplicate_found=0
+        for row in "${rows[@]}"; do
+            IFS=',' read -a row_values <<< "$row"
+            if [ "${row_values[$col_index]}" == "$new_value" ] && [ "$row" != "$selected_row" ]; then
+                duplicate_found=1
+                break
+            fi
+        done
+
+        if [ "$duplicate_found" -eq 1 ]; then
+            zenity --error --text="Duplicate primary key value found. Please enter a unique value." --width=300
+            continue
+        fi
+    fi
+
+    if [[ "${data_types[$col_index]}" == "int" && ! "$new_value" =~ ^[0-9]+$ ]]; then
+        zenity --error --text="Invalid value. Please enter an integer." --width=300
+        continue
+    elif [[ "${data_types[$col_index]}" == "string" && "$new_value" =~ [^a-zA-Z] ]]; then
+        zenity --error --text="Invalid value. Please enter a valid string." --width=300
+        continue
+    fi
+
+    break
+done
+
+selected_values[$col_index]="$new_value"
+updated_row=$(IFS=','; echo "${selected_values[*]}")
+
+sed -i "${row_number}s/.*/$updated_row/" "$data_file"
+
+zenity --info --text="Row updated successfully in table '$table_name'." --width=300
+
